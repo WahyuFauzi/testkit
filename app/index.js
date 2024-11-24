@@ -31,6 +31,7 @@ export default class extends Generator {
       try {
         const yoConfig = JSON.parse(data);
         this.configObject.yoConfig = yoConfig;
+        this.log(this.configObject)
         this.log('yoConfig.json successfully parsed.');
       } catch (parseErr) {
         this.log(`Error parsing yoConfig.json: ${parseErr.message}`);
@@ -48,7 +49,6 @@ export default class extends Generator {
         message: 'Which steps would you like to run?',
         choices: [
           { name: 'Generate Attributes', value: 'generateAttributes' },
-          { name: 'Translate Attributes', value: 'translateAttr' },
           { name: 'Generate Dynamic Attributes', value: 'generateDynamicAttribute' },
         ],
       },
@@ -60,28 +60,18 @@ export default class extends Generator {
 
     if (steps.includes('generateAttributes')) {
       try {
-        this.configObject.yoConfig["generator-cypress:0.0.1"].templateFolder.forEach(templateFolderPath => {
-          generateAttributes(templateFolderPath);
+        this.configObject.yoConfig["generator-cypress"].templateDir.forEach(templatePath => {
+          generateAttributes(templatePath);
         });
       } catch (err) {
         this.log('Error when reading template folder path');
-      }
-    }
-
-    if (steps.includes('translateAttr')) {
-      try {
-        this.configObject.yoConfig["generator-cypress:0.0.1"].templateFolder.forEach(templateFolderPath => {
-          translateAttr(templateFolderPath, this.configObject.yoConfig["generator-cypress:0.0.1"].translateJsonOutput);
-        });
-      } catch (err) {
-        this.log('Error when translating attributes');
         this.log(err);
       }
     }
 
     if (steps.includes('generateDynamicAttribute')) {
       try {
-        this.configObject.yoConfig["generator-cypress:0.0.1"].dynamicComponentsFolder.forEach(templateFolderPath => {
+        this.configObject.yoConfig["generator-cypress"].dynamicComponentsFolder.forEach(templateFolderPath => {
           generateDynamicAttribute(templateFolderPath);
         });
       } catch (err) {
@@ -89,13 +79,35 @@ export default class extends Generator {
       }
 
       try {
-        this.configObject.yoConfig["generator-cypress:0.0.1"].dynamicComponentsFolderScript.forEach(templateFolderPath => {
+        this.configObject.yoConfig["generator-cypress"].dynamicComponentsFolderScript.forEach(templateFolderPath => {
           addPropToTSFiles(templateFolderPath);
         });
       } catch (err) {
         this.log('Error when generate dynamic component');
+        this.log(err);
       }
     }
+
+    if (steps.includes('translateAttr')) {
+      try {
+        this.configObject.yoConfig["generator-cypress"].templateFolder.forEach(templateFolderPath => {
+          translateAttr(templateFolderPath, this.configObject.yoConfig["generator-cypress"].translateJsonOutput);
+        });
+      } catch (err) {
+        this.log('Error when translating attributes');
+        this.log(err);
+      }
+
+      try {
+        this.configObject.yoConfig["generator-cypress"].dynamicComponentsFolder.forEach(templateFolderPath => {
+          translateAttr(templateFolderPath, this.configObject.yoConfig["generator-cypress"].translateJsonOutput);
+        });
+      } catch (err) {
+        this.log('Error when translating attributes');
+        this.log(err);
+      }
+    }
+
   }
 
   end() {

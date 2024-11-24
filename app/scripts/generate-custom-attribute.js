@@ -3,33 +3,21 @@ import path from "path";
 import glob from "glob";
 
 // Process a single file and add attributes
-export const processFile = (filePath) => {
+const processFile = (filePath) => {
   const fileName = path.basename(filePath, path.extname(filePath));
   const fileContent = fs.readFileSync(filePath, "utf8");
 
-  // Match all tags except <template>, <script>, and <style>
   const updatedContent = fileContent.replace(
-    /<(?!template|script|style|any)([a-zA-Z][^\s>]*)([^>]*)>/g,
-    (match, tagName, attributes) => {
-      // Skip if data-testid is already present
+    /<(div|button|input|p|img)(\s+[^>]*)?>/g,
+    (match, tagName, attributes = "") => {
+      // Skip if `data-testid` is already present
       if (attributes.includes("data-testid")) return match;
 
-      // Check for `dataCyCustom` attribute
-      const dataCyCustomMatch = attributes.match(/dataCyCustom="([^"]+)"/);
-
       let newAttributes = [];
+      const testIdValue = `${fileName}-${tagName}-${generateRandomHex()}`;
+      newAttributes.push(`data-testid="${testIdValue}"`);
 
-      if (dataCyCustomMatch) {
-        // Generate :dataTestIdCustom based on dataCyCustom
-        const dataCyCustomValue = `${tagName}-${fileName}-${generateRandomHex()}`;
-        newAttributes.push(`:dataTestIdCustom="${dataCyCustomValue}"`);
-      } else {
-        // Generate a unique data-testid
-        const testIdValue = `${fileName}-${tagName}-${generateRandomHex()}`;
-        newAttributes.push(`data-testid="${testIdValue}"`);
-      }
-
-      // Append new attributes to the tag
+      // Append new attributes to the existing attributes
       return `<${tagName} ${newAttributes.join(" ")}${attributes}>`;
     }
   );
@@ -37,6 +25,7 @@ export const processFile = (filePath) => {
   fs.writeFileSync(filePath, updatedContent, "utf8");
   console.log(`Processed: ${filePath}`);
 };
+
 
 // Process all files matching a glob pattern
 export const generateAttributes = (globPattern) => {
